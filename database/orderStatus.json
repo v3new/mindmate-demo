@@ -1,6 +1,14 @@
 {
   "orders": [
     {"id": 1001, "status": "Обрабатывается", "deliveryDate": "2024-06-07"},
-    {"id": 1002, "status": "В пути", "deliveryDate": "2024-06-10"}
+    {"id": 1002, "status": "В пути", "deliveryDate": "2024-06-10"},
+    {"id": 1003, "status": "Доставлен", "deliveryDate": "2024-05-28"},
+    {"id": 1004, "status": "Ожидает оплаты", "deliveryDate": null},
+    {"id": 1005, "status": "Отменён", "deliveryDate": null},
+    {"id": 1006, "status": "В пути", "deliveryDate": "2024-06-12"},
+    {"id": 1007, "status": "Обрабатывается", "deliveryDate": "2024-06-08"},
+    {"id": 1008, "status": "Доставлен", "deliveryDate": "2024-06-05"},
+    {"id": 1009, "status": "Ожидает подтверждения", "deliveryDate": null},
+    {"id": 1010, "status": "Возвращён", "deliveryDate": "2024-06-01"}
   ]
 }
