@@ -101,6 +101,20 @@ function loadPersonalPromoCodes(userId = 'default') {
   return data;
 }
 
+/**
+ * Загружает статусы заказов (с учётом userId)
+ */
+function loadOrderStatus(userId = 'default') {
+  const file = path.join('database', `orderStatus_${userId}.json`);
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    data = JSON.parse(fs.readFileSync(path.join('database', 'orderStatus.json'), 'utf-8'));
+  }
+  return data;
+}
+
 app.get('/api/scenarios', (req, res) => {
   res.json(scenarios);
 });
@@ -175,6 +189,14 @@ app.post('/api/chat', async (req, res) => {
       .join('\n');
     systemPrompt =
       `Персональные промокоды пользователя:\n${list}\n\n` +
+      `Используй эти данные, чтобы ответить на вопрос пользователя.`;
+  } else if (scenario.name === 'orderTracking') {
+    const data = loadOrderStatus(userId);
+    const list = (data.orders || [])
+      .map(o => `${o.id}: ${o.status}${o.deliveryDate ? `, доставка ${o.deliveryDate}` : ''}`)
+      .join('\n');
+    systemPrompt =
+      `Статусы заказов пользователя:\n${list}\n\n` +
       `Используй эти данные, чтобы ответить на вопрос пользователя.`;
   }
 
