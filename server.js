@@ -115,6 +115,51 @@ function loadOrderStatus(userId = 'default') {
   return data;
 }
 
+function loadCart(userId = 'default') {
+  const file = path.join('database', `cart_${userId}.json`);
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    data = JSON.parse(fs.readFileSync(path.join('database', 'cart.json'), 'utf-8'));
+  }
+  return data;
+}
+
+function loadContacts() {
+  return JSON.parse(fs.readFileSync(path.join('database', 'contacts.json'), 'utf-8'));
+}
+
+function loadFaq() {
+  return JSON.parse(fs.readFileSync(path.join('database', 'faq.json'), 'utf-8'));
+}
+
+function loadSections() {
+  return JSON.parse(fs.readFileSync(path.join('database', 'sections.json'), 'utf-8'));
+}
+
+function loadNewsletters(userId = 'default') {
+  const file = path.join('database', `newsletters_${userId}.json`);
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    data = JSON.parse(fs.readFileSync(path.join('database', 'newsletters.json'), 'utf-8'));
+  }
+  return data;
+}
+
+function loadPurchaseHistory(userId = 'default') {
+  const file = path.join('database', `purchaseHistory_${userId}.json`);
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    data = JSON.parse(fs.readFileSync(path.join('database', 'purchaseHistory.json'), 'utf-8'));
+  }
+  return data;
+}
+
 app.get('/api/scenarios', (req, res) => {
   res.json(scenarios);
 });
@@ -198,6 +243,66 @@ app.post('/api/chat', async (req, res) => {
     systemPrompt =
       `Статусы заказов пользователя:\n${list}\n\n` +
       `Используй эти данные, чтобы ответить на вопрос пользователя.`;
+  } else if (scenario.name === 'itemsAdvisor') {
+    const list = (products.products || [])
+      .slice(0, 5)
+      .map(p => `${p.name} (${p.category}) — ${p.price}₽`)
+      .join('\n');
+    systemPrompt =
+      `Несколько популярных товаров из каталога:\n${list}\n\n` +
+      `Используй эти данные, чтобы посоветовать товары.`;
+  } else if (scenario.name === 'addToCartSuggestion') {
+    const cart = loadCart(userId);
+    const items = (cart.cart || []).map(c => c.name).join(', ');
+    const cartCategories = (cart.cart || [])
+      .map(c => {
+        const prod = (products.products || []).find(p => p.name === c.name);
+        return prod ? prod.category : null;
+      })
+      .filter(Boolean);
+    const suggestion = (products.products || [])
+      .find(p => cartCategories.includes(p.category) && !(cart.cart || []).some(c => c.name === p.name));
+    const textSuggestion = suggestion ? `${suggestion.name} (${suggestion.price}₽)` : 'нет предложений';
+    systemPrompt =
+      `В корзине пользователя: ${items}.\nПредложи добавить товар: ${textSuggestion}.`;
+  } else if (scenario.name === 'visitPromoPage') {
+    const sections = loadSections();
+    const promo = sections.sections.find(s => /акции/i.test(s.name)) || sections.sections[0];
+    systemPrompt =
+      `Предложи пользователю перейти по ссылке на промо страницу: ${promo.url}`;
+  } else if (scenario.name === 'contactManager') {
+    const info = loadContacts().contacts;
+    systemPrompt =
+      `Контактная информация:\nТелефон: ${info.phone}\nEmail: ${info.email}\nАдрес: ${info.address}\n\n` +
+      `Уточни, как пользователю удобнее связаться.`;
+  } else if (scenario.name === 'faq') {
+    const faq = loadFaq().faq.slice(0, 5)
+      .map(f => `${f.question} — ${f.answer}`)
+      .join('\n');
+    systemPrompt =
+      `Часто задаваемые вопросы:\n${faq}\n\nОтвечай, используя эту информацию.`;
+  } else if (scenario.name === 'siteNavigator') {
+    const list = loadSections().sections.map(s => `${s.name}: ${s.url}`).join('\n');
+    systemPrompt =
+      `Разделы сайта:\n${list}\n\nПомоги найти нужный раздел.`;
+  } else if (scenario.name === 'notificationSettings') {
+    const list = loadNewsletters(userId).newsletters
+      .map(n => `${n.name}: ${n.subscribed ? 'подписан' : 'не подписан'}`)
+      .join('\n');
+    systemPrompt =
+      `Подписки пользователя на рассылки:\n${list}\n\nПомоги изменить настройки.`;
+  } else if (scenario.name === 'purchaseHistory') {
+    const list = loadPurchaseHistory(userId).purchases
+      .map(p => `${p.date}: ${p.name} — ${p.price}₽, бонусы ${p.bonus}`)
+      .join('\n');
+    systemPrompt =
+      `История покупок пользователя:\n${list}\n\nИспользуй эти данные для ответа.`;
+  } else if (scenario.name === 'productReturn') {
+    const last = loadPurchaseHistory(userId).purchases.slice(-5)
+      .map(p => `${p.name} от ${p.date}`)
+      .join('\n');
+    systemPrompt =
+      `Последние покупки пользователя:\n${last}\n\nПомоги оформить возврат одного из товаров.`;
   }
 
   // 4) Собираем сообщения для GPT-чата
