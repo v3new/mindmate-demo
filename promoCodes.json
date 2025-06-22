@@ -1,0 +1,19 @@
+{
+  "promoCodes": [
+    {
+      "code": "WELCOME10",
+      "description": "Скидка 10% за подписку на рассылку",
+      "discount": 10
+    },
+    {
+      "code": "FRIEND20",
+      "description": "20% при приглашении друга",
+      "discount": 20
+    },
+    {
+      "code": "SALE30",
+      "description": "Скидка 30% на распродаже",
+      "discount": 30
+    }
+  ]
+}

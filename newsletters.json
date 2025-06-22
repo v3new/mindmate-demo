@@ -1,0 +1,7 @@
+{
+  "newsletters": [
+    {"name": "Новинки", "subscribed": true},
+    {"name": "Скидки и акции", "subscribed": false},
+    {"name": "Блог", "subscribed": true}
+  ]
+}

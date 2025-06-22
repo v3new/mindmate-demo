@@ -1,0 +1,9 @@
+{
+  "sections": [
+    {"name": "Главная", "url": "/"},
+    {"name": "Каталог", "url": "/catalog"},
+    {"name": "Акции", "url": "/sales"},
+    {"name": "Контакты", "url": "/contacts"},
+    {"name": "FAQ", "url": "/faq"}
+  ]
+}

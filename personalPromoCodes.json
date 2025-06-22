@@ -1,0 +1,16 @@
+{
+  "personalPromoCodes": [
+    {
+      "code": "MY15",
+      "description": "Персональная скидка 15% за активность",
+      "discount": 15,
+      "expires": "2024-12-31"
+    },
+    {
+      "code": "BIRTHDAY20",
+      "description": "20% ко дню рождения пользователя",
+      "discount": 20,
+      "expires": "2024-08-20"
+    }
+  ]
+}
