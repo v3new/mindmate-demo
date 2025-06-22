@@ -1,0 +1,56 @@
+# output
+build
+.next
+out
+!**/scripts/build
+
+# dependencies
+node_modules
+**/yarn.lock
+**/package-lock.json
+/.pnp
+.pnp.js
+
+# misc
+.aws
+.DS_Store
+dump
+dump.rdb
+testI18N
+**/__pycache__/
+.pyvenv
+.mongodb
+mongodb
+
+# testing
+/coverage
+
+# local env files
+.env*
+!.env*.example
+
+# code editors
+.idea
+.vscode
+
+# resources
+/resources
+.s3_wd
+tanker-translations-data.xml
+/tools/cli/converter/xml2csv/data/result.csv
+/tools/cli/other/boardgamesRating.json
+/tools/cli/other/perfumeRating.json
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+projects/ranking-api/access_log.jsons
+projects/ranking-api/sample_pool.jsons
+projects/similar-api/access_log.jsons
+
+go.work.*
+bun.lockb
+
+projects/ranking-api/logs/
+projects/similar-api/logs/

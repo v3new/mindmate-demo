@@ -1,6 +1,6 @@
 const express = require('express');
 const fs = require('fs');
-const { Configuration, OpenAIApi } = require('openai');
+const { OpenAI } = require('openai');
 
 const app = express();
 app.use(express.json());
@@ -9,9 +9,10 @@ app.use(express.static('public'));
 const scenarios = JSON.parse(fs.readFileSync('./scenarios.json', 'utf-8'));
 const products = JSON.parse(fs.readFileSync('./products.json', 'utf-8'));
 
-const openai = new OpenAIApi(new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-}));
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://bothub.chat/api/v2/openai/v1',
+});
 
 app.get('/api/scenarios', (req, res) => {
   res.json(scenarios);
@@ -26,15 +27,19 @@ app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
   const scenario = matchScenario(message) || scenarios.find(s => s.name === 'default');
   const prompt = scenario.script;
+
   try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: prompt },
-        { role: 'user', content: message }
+        { role: 'user',   content: message }
       ]
     });
-    const reply = completion.data.choices[0].message.content.trim();
+
+    // ← вот исправление:
+    const reply = completion.choices[0].message.content.trim();
+
     res.json({ reply, followUps: scenario.followUps || [] });
   } catch (e) {
     console.error(e);
