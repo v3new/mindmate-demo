@@ -3,14 +3,92 @@
     {
       "code": "MY15",
       "description": "Персональная скидка 15% за активность",
-      "discount": 15,
+      "type": "percent",
+      "value": 15,
+      "scope": "entire",
+      "minOrderAmount": 1000,
       "expires": "2024-12-31"
     },
     {
       "code": "BIRTHDAY20",
       "description": "20% ко дню рождения пользователя",
-      "discount": 20,
+      "type": "percent",
+      "value": 20,
+      "scope": "entire",
+      "minOrderAmount": 500,
       "expires": "2024-08-20"
+    },
+    {
+      "code": "WELCOME10",
+      "description": "Приветственный промокод для новых пользователей",
+      "type": "absolute",
+      "value": 300,
+      "scope": "entire",
+      "minOrderAmount": 500,
+      "expires": "2024-09-30"
+    },
+    {
+      "code": "VIP25",
+      "description": "Скидка 25% для постоянных клиентов",
+      "type": "percent",
+      "value": 25,
+      "scope": "entire",
+      "minOrderAmount": 2000,
+      "expires": "2024-11-15"
+    },
+    {
+      "code": "FREESHIP50",
+      "description": "Бесплатная доставка при заказе от 500 рублей",
+      "type": "absolute",
+      "value": 50,
+      "scope": "entire",
+      "minOrderAmount": 500,
+      "expires": "2024-10-10"
+    },
+    {
+      "code": "SUMMER30",
+      "description": "Скидка 30% на летние товары",
+      "type": "percent",
+      "value": 30,
+      "scope": "specific",
+      "appliesTo": ["Пляжное полотенце", "Шляпа с полями", "Солнцезащитные очки"],
+      "expires": "2024-09-01"
+    },
+    {
+      "code": "LOYALTY15",
+      "description": "Награда за лояльность — 15% на любой заказ",
+      "type": "percent",
+      "value": 15,
+      "scope": "entire",
+      "minOrderAmount": 1000,
+      "expires": "2024-11-30"
+    },
+    {
+      "code": "EARLYBIRD20",
+      "description": "Ранняя птичка: 20% за заказ до 10 числа",
+      "type": "percent",
+      "value": 20,
+      "scope": "entire",
+      "minOrderAmount": 700,
+      "expires": "2024-08-31"
+    },
+    {
+      "code": "REFER50",
+      "description": "50 бонусов за рекомендацию другу",
+      "type": "absolute",
+      "value": 50,
+      "scope": "entire",
+      "minOrderAmount": 500,
+      "expires": "2024-12-01"
+    },
+    {
+      "code": "HOLIDAY10",
+      "description": "Праздничная скидка 10% на новую коллекцию",
+      "type": "percent",
+      "value": 10,
+      "scope": "specific",
+      "appliesTo": ["Зимний свитер", "Шапка ушанка", "Шарф"],
+      "expires": "2024-12-25"
     }
   ]
 }
