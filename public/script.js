@@ -1,3 +1,5 @@
+const USER_ID = 'abc123';
+
 async function loadScenarios() {
   const res = await fetch('/api/scenarios');
   const scenarios = await res.json();
@@ -23,7 +25,7 @@ async function sendMessage(text) {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: text })
+    body: JSON.stringify({ message: text, userId: USER_ID })
   });
   const data = await res.json();
   addMessage(data.reply, 'bot');

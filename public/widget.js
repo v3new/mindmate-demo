@@ -1,6 +1,7 @@
 // Chat widget script
 
 (function() {
+  const USER_ID = 'abc123';
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   styleLink.href = 'widget.css';
@@ -94,7 +95,7 @@
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text, userId: USER_ID })
       });
       const data = await res.json();
       addMessage(data.reply, 'bot');

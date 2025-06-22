@@ -1,5 +1,9 @@
 {
-  "balance": 650,
+  "user_id": "abc123",
+  "bonus_balance": 650,
+  "cashback_available": 120,
+  "loyalty_tier": "Gold",
+  "last_updated": "2025-06-20",
   "history": [
     {"date": "2024-01-15", "change": 200, "reason": "начисление за покупку", "products": ["Смартфон X1", "Чехол для смартфона"]},
     {"date": "2024-01-20", "change": -75, "reason": "оплата бонусами"},
