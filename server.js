@@ -1,3 +1,5 @@
+// === server.js ===
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -14,37 +16,59 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: 'https://bothub.chat/api/v2/openai/v1',
 });
+
+// В памяти храним историю и последний сценарий для каждого пользователя
 const conversations = {};
 
-app.get('/api/scenarios', (req, res) => {
-  res.json(scenarios);
-});
-
+/**
+ * Простое совпадение по триггерам, если классификация не сработала
+ */
 function matchScenario(input) {
   const text = input.toLowerCase();
   return scenarios.find(s => s.triggers.some(t => text.includes(t.toLowerCase())));
 }
 
-async function classifyScenario(text) {
-  const prompt =
-    'Ты классификатор обращений. Тебе дан JSON со сценариями. ' +
-    'Верни только поле "name" сценария, который лучше всего подходит для сообщения пользователя. ' +
-    'Если ничего не подходит, ответь "default".\n\n' +
+/**
+ * Классификатор сценариев с учётом истории:
+ * - Формируем JSON-сценариев
+ * - Отдельным системным сообщением передаём последние N сообщений истории
+ * - Затем user => новое сообщение
+ */
+async function classifyScenario(newText, history = []) {
+  const promptBase =
+    'Ты классификатор обращений. Тебе дан JSON со всеми сценариями. ' +
+    'Верни только поле "name" того сценария, который лучше всего подходит для нового сообщения. ' +
+    'Если ничего не подходит — верни "default".\n\n' +
     JSON.stringify(scenarios, null, 2);
+
+  // Собираем последние 8 сообщений истории в читаемый вид
+  const historyText = history
+    .slice(-8)
+    .map(m => {
+      const who = m.role === 'assistant' ? 'Бот' : 'Пользователь';
+      return `${who}: ${m.content}`;
+    })
+    .join('\n');
+
   const messages = [
-    { role: "system", content: prompt },
-    { role: "user", content: text }
+    { role: "system", content: promptBase },
+    { role: "system", content: `История диалога:\n${historyText}` },
+    { role: "user", content: newText }
   ];
+
   console.log("GPT request (classifyScenario):", messages);
   const resp = await client.chat.completions.create({
     model: "gpt-4o-mini",
     messages
   });
-  console.log("GPT response (classifyScenario):", resp.choices[0].message.content);
-
-  return resp.choices[0].message.content.trim();
+  const name = resp.choices[0].message.content.trim();
+  console.log("GPT response (classifyScenario):", name);
+  return name;
 }
 
+/**
+ * Загружает данные лояльности (с учётом userId)
+ */
 function loadLoyaltyData(userId = 'default') {
   const file = path.join('database', `loyalty_${userId}.json`);
   let data;
@@ -56,40 +80,50 @@ function loadLoyaltyData(userId = 'default') {
   return data;
 }
 
+app.get('/api/scenarios', (req, res) => {
+  res.json(scenarios);
+});
+
 app.post('/api/chat', async (req, res) => {
   const { message, userId } = req.body;
-  let scenario;
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+
+  // Инициализируем разговор, если надо
   if (!conversations[userId]) {
     conversations[userId] = { history: [], scenario: null };
   }
   const conv = conversations[userId];
 
+  // 1) Классифицируем сценарий с учётом истории
+  let scenario;
   try {
-    const name = await classifyScenario(message);
+    const name = await classifyScenario(message, conv.history);
     scenario = scenarios.find(s => s.name === name);
   } catch (e) {
     console.error('classification error', e);
   }
 
+  // 2) Фоллбэк на простое матчинговое правило
   if (!scenario) {
     scenario = matchScenario(message);
   }
-
   if (!scenario) {
     scenario = { name: 'default', script: 'Ты дружелюбный помощник интернет-магазина.' };
   }
 
+  // 3) Подготовка системного промпта для основного чата
   let systemPrompt = scenario.script;
-
   if (scenario.name === 'bonusBalance') {
     const data = loadLoyaltyData(userId);
-    const history = (data.history || [])
+    const historyText = (data.history || [])
       .map(h => {
         if (h.event) {
           return `${h.date}: ${h.event} (${h.points})`;
         }
         const sign = h.change > 0 ? '+' : '';
-        return `${h.date}: ${h.reason} (${sign}${h.change}: ${h.products?.join(', ')})`;
+        return `${h.date}: ${h.reason} (${sign}${h.change}${h.products ? `: ${h.products.join(', ')}` : ''})`;
       })
       .join('\n');
     systemPrompt =
@@ -98,9 +132,11 @@ app.post('/api/chat', async (req, res) => {
       `- Кэшбек: ${data.cashback_available}\n` +
       `- Уровень: ${data.loyalty_tier}\n` +
       `- Последнее обновление: ${data.last_updated}\n` +
-      `- История: \n${history}\n` +
-      `\nИспользуй эти данные, чтобы ответить на вопрос пользователя.`;
+      `- История: \n${historyText}\n\n` +
+      `Используй эти данные, чтобы ответить на вопрос пользователя.`;
   }
+
+  // 4) Собираем сообщения для GPT-чата
   const historyMessages = conv.history.slice(-6);
   const gptMessages = [
     { role: "system", content: systemPrompt },
@@ -115,13 +151,15 @@ app.post('/api/chat', async (req, res) => {
       model: "gpt-4o-mini",
       messages: gptMessages
     });
-    console.log("GPT response (chat):", completion.choices[0].message.content);
-
     const reply = completion.choices[0].message.content.trim();
+    console.log("GPT response (chat):", reply);
+
+    // 5) Сохраняем в историю
     conv.history.push({ role: "user", content: message });
     conv.history.push({ role: "assistant", content: reply });
     conv.scenario = scenario.name;
 
+    // 6) Отправляем ответ клиенту
     res.json({ reply, followUps: scenario.followUps || [] });
   } catch (e) {
     console.error(e);
@@ -130,4 +168,4 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
