@@ -27,7 +27,7 @@
       <div id="chat-scenarios"></div>
       <div id="chat-quick"></div>
       <div id="chat-input-row">
-        <input id="chat-input" type="text" placeholder="Введите сообщение..." autocomplete="off"/>
+        <input id="chat-input" type="text" placeholder="Чем могу помочь?" autocomplete="off"/>
         <button id="chat-send"><span class="material-icons">send</span></button>
       </div>
     </div>`;
@@ -63,7 +63,7 @@
     try {
       const res = await fetch('/api/scenarios');
       const list = await res.json();
-      list.filter(s => s.type === 'public').forEach(s => {
+      list.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'scenario';
         btn.textContent = s.triggers[0] || s.name;
