@@ -89,7 +89,7 @@ app.post('/api/chat', async (req, res) => {
           return `${h.date}: ${h.event} (${h.points})`;
         }
         const sign = h.change > 0 ? '+' : '';
-        return `${h.date}: ${h.reason} (${sign}${h.change}: ${h.products.map(p => p.name).join(', ')})`;
+        return `${h.date}: ${h.reason} (${sign}${h.change}: ${h.products?.join(', ')})`;
       })
       .join('\n');
     systemPrompt =

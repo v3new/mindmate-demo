@@ -1,12 +1,14 @@
-// Chat widget script
+// === widget.js ===
 
 (function() {
   const USER_ID = 'abc123';
+  // подключаем CSS
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   styleLink.href = 'widget.css';
   document.head.appendChild(styleLink);
 
+  // создаём контейнер
   const container = document.createElement('div');
   container.id = 'chat-widget';
   container.innerHTML = `
@@ -18,7 +20,7 @@
       <div id="chat-scenarios"></div>
       <div id="chat-quick"></div>
       <div id="chat-input-row">
-        <input id="chat-input" type="text" placeholder="Введите сообщение..." />
+        <input id="chat-input" type="text" placeholder="Введите сообщение..." autocomplete="off"/>
         <button id="chat-send"><span class="material-icons">send</span></button>
       </div>
     </div>`;
@@ -32,55 +34,57 @@
   const input = container.querySelector('#chat-input');
   const sendBtn = container.querySelector('#chat-send');
 
-  async function loadScenarios() {
-    try {
-      const res = await fetch('/api/scenarios');
-      const list = await res.json();
-      list.filter(s => s.type === 'public').forEach(s => {
-        const b = document.createElement('button');
-        b.className = 'scenario';
-        b.textContent = s.triggers[0] || s.name;
-        b.onclick = () => {
-          addMessage(b.textContent, 'user');
-          send(b.textContent);
-        };
-        scenarios.appendChild(b);
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  function toggleChat() {
+  fab.addEventListener('click', () => {
     panel.classList.toggle('open');
     fab.classList.toggle('open');
     if (panel.classList.contains('open')) {
       input.focus();
       scrollToBottom();
     }
+  });
+
+  // скрываем начальные подсказки при вводе
+  input.addEventListener('input', () => {
+    scenarios.style.opacity = input.value.trim() ? '0' : '1';
+    scenarios.style.pointerEvents = input.value.trim() ? 'none' : 'auto';
+  });
+
+  async function loadScenarios() {
+    try {
+      const res = await fetch('/api/scenarios');
+      const list = await res.json();
+      list.filter(s => s.type === 'public').forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'scenario';
+        btn.textContent = s.triggers[0] || s.name;
+        btn.onclick = () => {
+          addMessage(btn.textContent, 'user');
+          send(btn.textContent);
+        };
+        scenarios.appendChild(btn);
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
-
-  fab.addEventListener('click', toggleChat);
-
-  loadScenarios();
 
   sendBtn.addEventListener('click', () => {
     const text = input.value.trim();
     if (!text) return;
     addMessage(text, 'user');
     input.value = '';
+    scenarios.style.opacity = '1';
+    scenarios.style.pointerEvents = 'auto';
     send(text);
   });
 
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      sendBtn.click();
-    }
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendBtn.click();
   });
 
   function addMessage(text, from) {
     const div = document.createElement('div');
-    div.className = 'msg ' + from;
+    div.className = `msg ${from}`;
     div.textContent = text;
     messages.appendChild(div);
     scrollToBottom();
@@ -94,11 +98,13 @@
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, userId: USER_ID })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: text, userId: USER_ID})
       });
       const data = await res.json();
       addMessage(data.reply, 'bot');
+
+      // быстрые подсказки от бота
       quick.innerHTML = '';
       (data.followUps || []).forEach(t => {
         const b = document.createElement('button');
@@ -114,4 +120,6 @@
       console.error(e);
     }
   }
+
+  loadScenarios();
 })();
