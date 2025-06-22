@@ -1,0 +1,6 @@
+{
+  "cart": [
+    {"name": "Одежда 5", "price": 1250, "quantity": 1},
+    {"name": "Спорт 2", "price": 4320, "quantity": 2}
+  ]
+}
