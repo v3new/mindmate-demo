@@ -34,7 +34,7 @@
 /* Панель */
 #chat-panel {
   width: 100%;
-  max-width: 420px;
+  max-width: 100px;
   height: 0;
   overflow: hidden;
   background: #fff;
@@ -45,7 +45,9 @@
   transition: height 0.3s ease;
 }
 #chat-panel.open {
-  height: 580px;
+  max-width: 500px;
+  height: 780px;
+  width: 500px;
 }
 @media (max-width: 600px) {
   #chat-panel.open {
@@ -62,6 +64,8 @@
   padding: 16px;
   overflow-y: auto;
   scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
 }
 .msg {
   margin: 8px 0;
@@ -70,10 +74,11 @@
   max-width: 80%;
   font-size: 15px;
   line-height: 1.5;
+  width: fit-content;
 }
 .msg.user {
   background-color: #e8dcff;
-  align-self: flex-end;
+  margin-left: auto;
   color: #333;
 }
 .msg.bot {

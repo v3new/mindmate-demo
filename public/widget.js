@@ -41,6 +41,15 @@
   const input     = container.querySelector('#chat-input');
   const sendBtn   = container.querySelector('#chat-send');
 
+  // Функция для обновления видимости блока сценариев
+  function updateScenariosVisibility() {
+    if (messages.childElementCount > 0) {
+      scenarios.style.display = 'none';
+    } else {
+      scenarios.style.display = '';
+    }
+  }
+
   // Открытие/закрытие виджета
   fab.addEventListener('click', () => {
     panel.classList.toggle('open');
@@ -51,7 +60,7 @@
     }
   });
 
-  // Скрываем сценарии при вводе
+  // Скрываем сценарии при вводе текста
   input.addEventListener('input', () => {
     const hasText = input.value.trim().length > 0;
     scenarios.style.opacity = hasText ? '0' : '1';
@@ -74,19 +83,22 @@
         scenarios.appendChild(btn);
       });
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load scenarios:', e);
     }
   }
 
-  // Отправка сообщения кликом и Enter
+  // Отправка сообщения по кнопке и Enter
   sendBtn.addEventListener('click', onSend);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') onSend(); });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') onSend();
+  });
 
   function onSend() {
     const text = input.value.trim();
     if (!text) return;
     addMessage(text, 'user');
     input.value = '';
+    // после отправки сбрасываем opacity, pointerEvents
     scenarios.style.opacity = '1';
     scenarios.style.pointerEvents = 'auto';
     send(text);
@@ -98,22 +110,23 @@
     div.className = `msg ${from}`;
 
     if (from === 'bot' && window.marked) {
-      // рендерим Markdown
+      // рендерим Markdown-ответ
       div.innerHTML = marked.parse(text);
     } else {
-      // обычный текст (пользовательские сообщения)
+      // текст пользователя или без Markdown
       div.textContent = text;
     }
 
     messages.appendChild(div);
     scrollToBottom();
+    updateScenariosVisibility();
   }
 
   function scrollToBottom() {
     messages.scrollTop = messages.scrollHeight;
   }
 
-  // Основная отправка на сервер и получение ответа
+  // Основная логика отправки/приёма чата
   async function send(text) {
     try {
       const res = await fetch('/api/chat', {
@@ -123,7 +136,7 @@
       });
       const data = await res.json();
 
-      // добавляем ответ бота
+      // ответ бота
       addMessage(data.reply, 'bot');
 
       // быстрые подсказки
@@ -139,9 +152,10 @@
         quick.appendChild(b);
       });
     } catch (e) {
-      console.error(e);
+      console.error('Chat send error:', e);
     }
   }
 
-  loadScenarios();
+  // Инициализация: загрузка сценариев и установка видимости
+  loadScenarios().then(updateScenariosVisibility);
 })();
