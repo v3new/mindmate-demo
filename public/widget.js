@@ -14,6 +14,7 @@
     </button>
     <div id="chat-panel">
       <div id="chat-messages"></div>
+      <div id="chat-scenarios"></div>
       <div id="chat-quick"></div>
       <div id="chat-input-row">
         <input id="chat-input" type="text" placeholder="Введите сообщение..." />
@@ -25,9 +26,29 @@
   const fab = container.querySelector('#chat-fab');
   const panel = container.querySelector('#chat-panel');
   const messages = container.querySelector('#chat-messages');
+  const scenarios = container.querySelector('#chat-scenarios');
   const quick = container.querySelector('#chat-quick');
   const input = container.querySelector('#chat-input');
   const sendBtn = container.querySelector('#chat-send');
+
+  async function loadScenarios() {
+    try {
+      const res = await fetch('/api/scenarios');
+      const list = await res.json();
+      list.filter(s => s.type === 'public').forEach(s => {
+        const b = document.createElement('button');
+        b.className = 'scenario';
+        b.textContent = s.triggers[0] || s.name;
+        b.onclick = () => {
+          addMessage(b.textContent, 'user');
+          send(b.textContent);
+        };
+        scenarios.appendChild(b);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   function toggleChat() {
     panel.classList.toggle('open');
@@ -39,6 +60,8 @@
   }
 
   fab.addEventListener('click', toggleChat);
+
+  loadScenarios();
 
   sendBtn.addEventListener('click', () => {
     const text = input.value.trim();

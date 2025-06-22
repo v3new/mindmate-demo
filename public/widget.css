@@ -47,6 +47,13 @@
   padding: 8px;
   overflow-y: auto;
 }
+#chat-scenarios {
+  padding: 4px 8px;
+  border-bottom: 1px solid #eee;
+}
+#chat-scenarios .scenario {
+  margin: 2px;
+}
 .msg { margin: 4px 8px; padding: 8px 12px; border-radius: 16px; max-width: 80%; }
 .msg.user { background:#e1bee7; margin-left:auto; text-align:right; }
 .msg.bot { background:#e0e0e0; }
