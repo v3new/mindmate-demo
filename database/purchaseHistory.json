@@ -1,7 +1,64 @@
 {
   "purchases": [
-    {"name": "Электроника 1", "price": 510, "bonus": 5, "date": "2024-05-05"},
-    {"name": "Одежда 3", "price": 1230, "bonus": 12, "date": "2024-05-20"},
-    {"name": "Спорт 10", "price": 4600, "bonus": 46, "date": "2024-06-02"}
+    {
+      "name": "Смартфон Nova X5",
+      "price": 24990,
+      "bonus": 249,
+      "date": "2024-05-05"
+    },
+    {
+      "name": "Ноутбук UltraBook Pro",
+      "price": 78990,
+      "bonus": 789,
+      "date": "2024-05-10"
+    },
+    {
+      "name": "Планшет TabMini 10",
+      "price": 19990,
+      "bonus": 199,
+      "date": "2024-05-15"
+    },
+    {
+      "name": "Джинсы UrbanStyle Slim",
+      "price": 2990,
+      "bonus": 29,
+      "date": "2024-05-20"
+    },
+    {
+      "name": "Хлопковые футболки BasicLine",
+      "price": 890,
+      "bonus": 8,
+      "date": "2024-05-22"
+    },
+    {
+      "name": "Кофеварка CoffeeGo",
+      "price": 12990,
+      "bonus": 129,
+      "date": "2024-05-25"
+    },
+    {
+      "name": "Фен TurboBlow 2000",
+      "price": 3990,
+      "bonus": 39,
+      "date": "2024-06-01"
+    },
+    {
+      "name": "Гантели IronGym 10 кг",
+      "price": 5990,
+      "bonus": 59,
+      "date": "2024-06-02"
+    },
+    {
+      "name": "Игрушка для собак FunBone",
+      "price": 590,
+      "bonus": 5,
+      "date": "2024-06-05"
+    },
+    {
+      "name": "Шампунь для животных PetShine",
+      "price": 690,
+      "bonus": 6,
+      "date": "2024-06-07"
+    }
   ]
 }
