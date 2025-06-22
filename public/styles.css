@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; margin: 20px; }
+#chat { border: 1px solid #ccc; padding: 10px; max-width: 600px; }
+#messages { min-height: 200px; margin-bottom: 10px; }
+.user { text-align: right; margin: 5px; }
+.bot { text-align: left; margin: 5px; }
+#quick-replies button { margin: 2px; }
+#scenarios button { margin: 2px; }
