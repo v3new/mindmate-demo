@@ -14,6 +14,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   baseURL: 'https://bothub.chat/api/v2/openai/v1',
 });
+const conversations = {};
 
 app.get('/api/scenarios', (req, res) => {
   res.json(scenarios);
@@ -30,14 +31,16 @@ async function classifyScenario(text) {
     'Верни только поле "name" сценария, который лучше всего подходит для сообщения пользователя. ' +
     'Если ничего не подходит, ответь "default".\n\n' +
     JSON.stringify(scenarios, null, 2);
-
+  const messages = [
+    { role: "system", content: prompt },
+    { role: "user", content: text }
+  ];
+  console.log("GPT request (classifyScenario):", messages);
   const resp = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: prompt },
-      { role: 'user', content: text }
-    ]
+    model: "gpt-4o-mini",
+    messages
   });
+  console.log("GPT response (classifyScenario):", resp.choices[0].message.content);
 
   return resp.choices[0].message.content.trim();
 }
@@ -56,6 +59,10 @@ function loadLoyaltyData(userId = 'default') {
 app.post('/api/chat', async (req, res) => {
   const { message, userId } = req.body;
   let scenario;
+  if (!conversations[userId]) {
+    conversations[userId] = { history: [], scenario: null };
+  }
+  const conv = conversations[userId];
 
   try {
     const name = await classifyScenario(message);
@@ -94,17 +101,26 @@ app.post('/api/chat', async (req, res) => {
       `- История: \n${history}\n` +
       `\nИспользуй эти данные, чтобы ответить на вопрос пользователя.`;
   }
+  const historyMessages = conv.history.slice(-6);
+  const gptMessages = [
+    { role: "system", content: systemPrompt },
+    { role: "system", content: `Последний сценарий: ${conv.scenario || "none"}` },
+    ...historyMessages,
+    { role: "user", content: message }
+  ];
 
   try {
+    console.log("GPT request (chat):", gptMessages);
     const completion = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user',   content: message }
-      ]
+      model: "gpt-4o-mini",
+      messages: gptMessages
     });
+    console.log("GPT response (chat):", completion.choices[0].message.content);
 
     const reply = completion.choices[0].message.content.trim();
+    conv.history.push({ role: "user", content: message });
+    conv.history.push({ role: "assistant", content: reply });
+    conv.scenario = scenario.name;
 
     res.json({ reply, followUps: scenario.followUps || [] });
   } catch (e) {
