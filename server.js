@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-const scenarios = JSON.parse(fs.readFileSync('./scenarios.json', 'utf-8'));
-const products = JSON.parse(fs.readFileSync('./products.json', 'utf-8'));
+const scenarios = JSON.parse(fs.readFileSync('./database/scenarios.json', 'utf-8'));
+const products = JSON.parse(fs.readFileSync('./database/products.json', 'utf-8'));
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
