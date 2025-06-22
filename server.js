@@ -80,6 +80,27 @@ function loadLoyaltyData(userId = 'default') {
   return data;
 }
 
+/**
+ * Загружает общие промокоды
+ */
+function loadPromoCodes() {
+  return JSON.parse(fs.readFileSync(path.join('database', 'promoCodes.json'), 'utf-8'));
+}
+
+/**
+ * Загружает персональные промокоды (с учётом userId)
+ */
+function loadPersonalPromoCodes(userId = 'default') {
+  const file = path.join('database', `personalPromoCodes_${userId}.json`);
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    data = JSON.parse(fs.readFileSync(path.join('database', 'personalPromoCodes.json'), 'utf-8'));
+  }
+  return data;
+}
+
 app.get('/api/scenarios', (req, res) => {
   res.json(scenarios);
 });
@@ -133,6 +154,27 @@ app.post('/api/chat', async (req, res) => {
       `- Уровень: ${data.loyalty_tier}\n` +
       `- Последнее обновление: ${data.last_updated}\n` +
       `- История: \n${historyText}\n\n` +
+      `Используй эти данные, чтобы ответить на вопрос пользователя.`;
+  } else if (scenario.name === 'viewPromoCodes') {
+    const data = loadPromoCodes();
+    const list = (data.promoCodes || [])
+      .map(p => `${p.code}: ${p.description} (скидка ${p.discount}%)`)
+      .join('\n');
+    systemPrompt =
+      `Актуальные промокоды:\n${list}\n\n` +
+      `Используй эти данные, чтобы ответить на вопрос пользователя.`;
+  } else if (scenario.name === 'personalDiscounts') {
+    const data = loadPersonalPromoCodes(userId);
+    const list = (data.personalPromoCodes || [])
+      .map(p => {
+        const val = p.type === 'percent' ? `${p.value}%` : `${p.value}₽`;
+        const min = p.minOrderAmount ? `, от ${p.minOrderAmount}₽` : '';
+        const items = p.appliesTo ? `, товары: ${p.appliesTo.join(', ')}` : '';
+        return `${p.code}: ${p.description} (${val}${min}, до ${p.expires}${items})`;
+      })
+      .join('\n');
+    systemPrompt =
+      `Персональные промокоды пользователя:\n${list}\n\n` +
       `Используй эти данные, чтобы ответить на вопрос пользователя.`;
   }
 

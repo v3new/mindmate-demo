@@ -14,3 +14,7 @@
    node server.js
    ```
 4. Откройте `http://localhost:3000` в браузере.
+
+Сценарий `viewPromoCodes` использует данные из `database/promoCodes.json`,
+а `personalDiscounts` — персональные промокоды из
+`database/personalPromoCodes.json`.
